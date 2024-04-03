@@ -1,5 +1,6 @@
 const asyncHandler = require("express-async-handler");
 const Student = require("../models/studentModel");
+const mongoose = require("mongoose");
 
 //@desc Get all studnets
 //@route GET /api/students
@@ -39,13 +40,18 @@ const updateStudent = asyncHandler(async (req, res) => {
 });
 
 const deleteStudent = asyncHandler(async (req, res) => {
-    const student = await Student.findById(req.params.id);
-    if (!student) {
+    const studentId = req.params.id;
+    const isValidId = mongoose.Types.ObjectId.isValid(studentId);
+    if (!isValidId) {
+        res.status(400);
+        throw new Error("Id is not valid");
+    }
+    const result = await Student.deleteOne({_id: studentId});
+    if (result.deletedCount === 0) {
         res.status(404);
         throw new Error("Contact Not Found");
     }
-    await Student.remove();
-    res.status(200.).json(student);
+    res.status(200).json({ message: "Student deleted"});
 });
 
 const getStudent = asyncHandler(async (req, res) => {
